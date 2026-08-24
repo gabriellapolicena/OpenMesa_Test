@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Mesa</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+</head>
+<body>
+
+<div id="app-container">
+
+    <div id="tela_login" class="tela-base ativa">
+        <div class="logo">Open<br>Mesa</div>
+        <div class="input-group"><label>Usuário:</label><input type="text"></div>
+        <div class="input-group"><label>Digite sua senha:</label><input type="password"></div>
+        <button class="btn-principal" style="width: 50%; margin-top: 30px;" onclick="mudarTelaBase('tela_inicial')">Login</button>
+    </div>
+
+    <div id="tela_inicial" class="tela-base">
+        <button class="voltar-btn" onclick="mudarTelaBase('tela_login')">←</button>
+        <div class="logo" style="margin-top: 0;">Open<br>Mesa</div>
+        <button class="btn-menu" onclick="abrirPopUp('pop_adicionar_dados')">Adicionar Fichas</button>
+        <button class="btn-menu" onclick="abrirHistoricoPopUp()">Checar Histórico</button>
+        <button class="btn-menu" onclick="abrirScanner()">Escanear QR Code</button>
+    </div>
+
+    <div id="tela_scanner" class="tela-base">
+        <button class="voltar-btn" style="position: absolute; top: 15px; left: 15px; color: white; z-index: 20;" onclick="fecharScanner()">←</button>
+        <div id="reader"></div>
+        <div class="scanner-footer">
+            <div class="scanner-counts">
+                <div class="count-box" id="box_marmita"><span class="label">Marmita</span><span class="value" id="val_marmita">0</span></div>
+                <div class="count-box" id="box_refeicao"><span class="label">Refeição</span><span class="value" id="val_refeicao">0</span></div>
+            </div>
+            <button class="btn-principal" onclick="confirmarScanner()">Confirmar</button>
+        </div>
+    </div>
+
+    <div id="pop_adicionar_dados" class="modal-overlay">
+        <div class="modal-content">
+            <button class="voltar-pop" onclick="fecharPopUp('pop_adicionar_dados')">←</button>
+            <div class="input-group" style="margin-top: 25px;"><label>Quantidade de marmitas a sair</label><input type="number" id="qtd_marmitas" min="0"></div>
+            <div class="input-group"><label>Quantidade de refeições vendidas</label><input type="number" id="qtd_refeicoes" min="0"></div>
+            <button class="btn-principal" style="margin-top: 15px;" onclick="confirmarFichasPopUp()">Confirmar</button>
+        </div>
+    </div>
+
+    <div id="pop_confirmacao" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="texto_confirmacao" style="color: white; background: #1a2942; padding: 20px; border-radius: 10px;">Deseja adicionar X fichas?</h3>
+            <div class="botoes-lado-a-lado">
+                <button class="btn-secundario" onclick="voltarParaDados()">Cancelar</button>
+                <button class="btn-principal" style="width: 45%; margin-top: 0;" onclick="avancarParaSucesso()">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pop_sucesso" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="color: white; background: #1a2942; padding: 20px; border-radius: 10px;">Fichas registradas com sucesso!</h3>
+            <button class="btn-principal" style="margin-top: 20px; width: 50%;" onclick="finalizarTodosFluxos()">Fechar</button>
+        </div>
+    </div>
+
+    <div id="pop_historico" class="modal-overlay">
+        <div class="modal-content" style="max-width: 360px;">
+            <button class="voltar-pop" onclick="fecharPopUp('pop_historico')">←</button>
+            <div class="calendario-container">
+                <div class="calendario-header">
+                    <button class="btn-cal" onclick="mudarMes(-1)">❮</button>
+                    <div class="seletores-data"><select id="select_mes" onchange="irParaDataSelecionada()"></select><select id="select_ano" onchange="irParaDataSelecionada()"></select></div>
+                    <button class="btn-cal" onclick="mudarMes(1)">❯</button>
+                </div>
+                <div class="calendario-grid" id="calendario_dias"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pop_registro_detalhes" class="modal-overlay">
+        <div class="modal-content" style="max-width: 360px; padding-top: 35px;">
+            <button class="voltar-pop" onclick="voltarParaCalendario()">←</button>
+            <div class="registro-nav">
+                <button class="btn-seta" onclick="mudarDiaRegistro(-1)">←</button>
+                <div class="data-badge" id="data_registro_badge">Data 06 de 03</div>
+                <button class="btn-seta" onclick="mudarDiaRegistro(1)">→</button>
+            </div>
+            <table class="tabela-registro">
+                <tr><th></th><th>Quantidade</th><th>Valor</th></tr>
+                <tr>
+                    <td class="label-item">Refeição</td>
+                    <td align="center"><input type="number" id="reg_qtd_refeicao" class="input-mini" min="0" oninput="salvarEAtualizarInputManual()"></td>
+                    <td align="center"><input type="text" id="reg_val_refeicao" class="input-mini" style="border-color: #ccc;" readonly></td>
+                </tr>
+                <tr>
+                    <td class="label-item">Marmita</td>
+                    <td align="center"><input type="number" id="reg_qtd_marmita" class="input-mini" min="0" oninput="salvarEAtualizarInputManual()"></td>
+                    <td align="center"><input type="text" id="reg_val_marmita" class="input-mini" style="border-color: #ccc;" readonly></td>
+                </tr>
+            </table>
+            <div class="total-container"><span class="total-title">Total</span><div class="total-box" id="reg_total_geral">R$ 0,00</div></div>
+            <div id="aviso_bloqueado" class="aviso-bloqueio">* Apenas consulta (Dias retroativos/futuros não editáveis)</div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
